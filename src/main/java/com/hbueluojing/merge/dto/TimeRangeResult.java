@@ -1,6 +1,6 @@
 package com.hbueluojing.merge.dto;
 
-import com.hbueluojing.merge.result.TimeRange;
+import com.hbueluojing.merge.response.TimeRange;
 import lombok.Data;
 
 @Data
