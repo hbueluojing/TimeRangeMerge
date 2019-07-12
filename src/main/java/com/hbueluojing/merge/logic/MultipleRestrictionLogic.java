@@ -1,12 +1,9 @@
 package com.hbueluojing.merge.logic;
 
-import com.buraequete.orikautomation.mapper.BeanMapper;
 import com.google.common.collect.Lists;
-import com.hbueluojing.merge.config.BeanMapperConfiguration;
 import com.hbueluojing.merge.dto.TimeRangeMergerCollection;
-import com.hbueluojing.merge.merge.TimePeriodMerger;
 import com.hbueluojing.merge.request.MultipleRestriction;
-import com.hbueluojing.merge.result.TimeRange;
+import com.hbueluojing.merge.response.TimeRange;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class MultipleRestrictionLogic<E, T> {
 	@Autowired
 	private TimePeriodMerger timePeriodMerger;
-	@Autowired
-	protected BeanMapper mapper;
-	@Autowired
-	private BeanMapperConfiguration.PatchMapper patchMapper;
-
 	private List<TimeRange> EMPTY_LIST = Lists.newArrayList();
 	private final LocalDateTime MIN_DATE_TIME = LocalDateTime.of(1970, 1, 1, 0, 0, 0, 0);
 	private final LocalDateTime MAX_DATE_TIME = LocalDateTime.of(9999, 12, 31, 23, 59, 59, 0);
@@ -47,6 +39,10 @@ public abstract class MultipleRestrictionLogic<E, T> {
 	protected abstract void linkChildren(T self);
 
 	protected abstract void deleteChildren(T self, T newEntity);
+
+	protected abstract List<T> convertRequestList(List<MultipleRestriction> multipleRestrictions, Class<T> tClass);
+
+	protected abstract void convertIfNotNull(T newEntity, T current);
 
 	public void create(E item, List<MultipleRestriction> requestList, Class<T> tClass, Supplier<TimeRange> constructor) {
 		if (CollectionUtils.isNotEmpty(requestList)) {
@@ -132,7 +128,7 @@ public abstract class MultipleRestrictionLogic<E, T> {
 				self = newEntity;
 			}
 			deleteChildren(self, newEntity);
-			patchMapper.map(newEntity, self);
+			convertIfNotNull(newEntity, self);
 			linkChildren(self);
 			return self;
 		}).collect(Collectors.toList());
@@ -155,11 +151,12 @@ public abstract class MultipleRestrictionLogic<E, T> {
 	}
 
 	private List<TimeRange> convertMultipleRestrictionAndReplaceNullDate(List<MultipleRestriction> multipleRestrictions, Class<T> tClass) {
-		List<T> requestList = mapper.mapAsList(multipleRestrictions, tClass);
+		List<T> requestList = convertRequestList(multipleRestrictions, tClass);
 		List<TimeRange> requestTimeRangeList = convert(requestList);
 		replaceNullDate(requestTimeRangeList);
 		return requestTimeRangeList;
 	}
+
 
 	private void replaceNullDate(List<TimeRange> requestList) {
 		requestList.forEach(entity -> {

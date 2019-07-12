@@ -1,4 +1,4 @@
-package com.hbueluojing.merge.result;
+package com.hbueluojing.merge.response;
 
 import java.time.LocalDateTime;
 

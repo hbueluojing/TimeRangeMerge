@@ -1,22 +1,18 @@
-package com.hbueluojing.merge.merge;
+package com.hbueluojing.merge.logic;
 
-import com.buraequete.orikautomation.mapper.BeanMapper;
 import com.google.common.collect.Lists;
 import com.hbueluojing.merge.dto.TimeRangeMergerCollection;
 import com.hbueluojing.merge.dto.TimeRangeResult;
-import com.hbueluojing.merge.result.TimeRange;
+import com.hbueluojing.merge.response.TimeRange;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import lombok.experimental.UtilityClass;
 
-@Component
+@UtilityClass
 public class TimePeriodMerger {
-	@Autowired
-	private BeanMapper beanMapper;
 
 	public TimeRangeMergerCollection mergeRequestList(List<TimeRange> requestList, Supplier<TimeRange> constructor) {
 		TimeRangeMergerCollection result = new TimeRangeMergerCollection();
@@ -68,7 +64,8 @@ public class TimePeriodMerger {
 			mergedResult.setRemoved(oldEntity);
 		} else if (isDivided(newEntity, oldEntity)) {
 			TimeRange newOldAfter = constructor.get();
-			beanMapper.map(oldEntity, newOldAfter);
+			newOldAfter.setStartDateTime(oldEntity.getStartDateTime());
+			newOldAfter.setEndDateTime(oldEntity.getEndDateTime());
 			newOldAfter.resetKeyAndStartDateTime(newEntity.getEndDateTime().plusSeconds(1));
 			mergedResult.setModified(newOldAfter);
 
